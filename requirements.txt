@@ -1,0 +1,8 @@
+litellm==1.43.13
+nltk==3.8.2
+numpy==2.0.1
+python-dotenv==1.0.1
+scikit_learn==1.5.1
+textstat==0.7.4
+torch==2.4.0
+transformers==4.44.0
