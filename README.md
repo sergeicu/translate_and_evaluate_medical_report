@@ -5,17 +5,17 @@
 Generate synthetic medical reports (or ingests existing .txt files), translate them into multiple languages using any LLM, then evaluate the quality of the translations using various metrics. 
 
 Usage:
-    python medical_report_generator_and_translator.py [options]
+    `python medical_report_generator_and_translator.py [options]`
 
-Output:
-    Create a new folder with translation for each language specified in .csv, .txt and .json format, together with corresponding evaluation report. 
+Output:  
+    - Create a new folder with translation for each language specified in .csv, .txt and .json format, together with corresponding evaluation report. 
 
 Options:
-    --languages TEXT          Comma-separated list of target languages for translation
-    --model TEXT              LLM model to use for translation (default: gpt-4o-mini)
-    --guidance TEXT           Additional specification for synthetic report generation - such as socio-demographics or disease details
-    --input_file TEXT         Path to a .txt file with medical report (to use instead of synthetic report)
-    --api_key TEXT            OpenAI API key (required if not present in .env file)
+    `--languages TEXT`          Comma-separated list of target languages for translation
+    `--model TEXT`              LLM model to use for translation (default: gpt-4o-mini)
+    `--guidance TEXT`           Additional specification for synthetic report generation - such as socio-demographics or disease details
+    `--input_file TEXT`         Path to a .txt file with medical report (to use instead of synthetic report)
+    `--api_key TEXT`            OpenAI API key (required if not present in .env file)
 
 Note: Ensure that you have OPENAI_API_KEY in .env file before running the script, or provide it via --api_key argument. 
 
