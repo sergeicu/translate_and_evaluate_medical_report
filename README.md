@@ -2,9 +2,9 @@
 
 A comprehensive tool for creating, translating, and evaluating translation of medical reports across different languages.
 
-In detail:  
+## In detail:  
 
-Generate synthetic medical reports (or ingest existing .txt files), translate them into multiple languages using any LLM, then evaluate the quality of the translations using various metrics. 
+Generate synthetic medical reports (or ingests existing .txt files), translate them into multiple languages using any LLM, then evaluate the quality of the translations using various metrics. 
 
 Usage:
     python medical_report_generator_and_translator.py [options]
