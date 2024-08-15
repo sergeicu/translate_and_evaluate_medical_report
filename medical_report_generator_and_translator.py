@@ -554,6 +554,57 @@ def check_json_completeness(json_file: str) -> bool:
         return False
 
 
+def evaluate_translation_quality(metrics: Dict[str, Dict[str, Any]], model: str = "gpt-4o-mini") -> Dict[str, str]:
+    """
+    Evaluate the overall quality of translations based on the metrics using GPT-4.
+
+    Args:
+        metrics (Dict[str, Dict[str, Any]]): A dictionary of metrics for each translation.
+        model (str): The model to use for evaluation (default: "gpt-4o-mini").
+
+    Returns:
+        Dict[str, str]: A dictionary containing the overall evaluation and justification.
+    """
+    overall_evaluation = {}
+    for language, metric_values in metrics.items():
+        
+        # Convert metrics to native Python types
+        metric_values_native = convert_to_native_types(metric_values)
+                
+        prompt = f"""Evaluate the quality of the following translation based on these metrics:
+        {json.dumps(metric_values_native, indent=2)}
+        
+        Rate the quality of the translation on a scale of 1-5, where 1 is very poor and 5 is excellent.
+        Provide a short summary statement justifying the evaluation score."""
+        
+        try:
+            response = completion(
+                model=model,
+                messages=[{"role": "user", "content": prompt}],
+            )
+            evaluation = response.choices[0].message.content.strip()
+            overall_evaluation[language] = evaluation
+        except Exception as e:
+            print(f"Error evaluating translation quality for {language}: {str(e)}")
+            overall_evaluation[language] = "Evaluation failed."
+    
+    return overall_evaluation
+
+def convert_to_native_types(obj):
+    """
+    Recursively convert numpy data types to native Python types.
+    """
+    if isinstance(obj, np.float32) or isinstance(obj, np.float64):
+        return float(obj)
+    elif isinstance(obj, np.int32) or isinstance(obj, np.int64):
+        return int(obj)
+    elif isinstance(obj, dict):
+        return {k: convert_to_native_types(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [convert_to_native_types(i) for i in obj]
+    return obj
+
+
 def main():
     parser = argparse.ArgumentParser(description="Medical Report Generator and Translator")
     parser.add_argument("--input_file", type=str, help="Path to a .txt file for translation")
@@ -632,17 +683,34 @@ def main():
     print(f"All translations saved in {report_folder}")
     print(f"All metrics saved in {report_folder}")
 
+
+    # Evaluate the overall translation quality
+    overall_evaluation = evaluate_translation_quality(all_metrics, args.model)
+
+    # Save the evaluation to a .txt file
+    evaluation_file = os.path.join(report_folder, "overall_evaluation.txt")
+    with open(evaluation_file, 'w', encoding='utf-8') as f:
+        for language, evaluation in overall_evaluation.items():
+            f.write(f"Language: {language}\n")
+            f.write(f"Evaluation: {evaluation}\n\n")
+
+    print(f"Overall translation evaluation saved in {evaluation_file}")        
+
     # Check JSON completeness
     json_file = os.path.join(report_folder, "json", "original_report.json")
     if check_json_completeness(json_file):
         print(f"JSON file {json_file} is complete and valid.")
     else:
         print(f"JSON file {json_file} is incomplete or invalid.")
+            
+
 
     # Remove "_in_progress" suffix from the folder name
     new_folder_name = report_folder.replace("_in_progress", "")
     os.rename(report_folder, new_folder_name)
     print(f"Report generation completed. Final report folder: {new_folder_name}")
+    
+        
 
 if __name__ == "__main__":
     main()

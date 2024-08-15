@@ -1,0 +1,4 @@
+{
+  "prompt": "Generate a random medical report for a fictional patient. Include the following sections:\n    1. Patient Information\n    2. Chief Complaint\n    3. History of Present Illness\n    4. Past Medical History\n    5. Physical Examination\n    6. Assessment\n    7. Plan\n\n    Please make sure the information is realistic but entirely fictional.\n\nPlease incorporate the following guidance in the report generation: tumour in the left lung and complications due to cirrhosis",
+  "model": "gpt-3.5-turbo"
+}
