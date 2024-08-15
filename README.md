@@ -1,6 +1,6 @@
 # Medical Report Generator and Translator
 
-A comprehensive tool for creating, translating, and evaluatig translation of medical reports across different languages.
+A comprehensive tool for creating, translating, and evaluating translation of medical reports across different languages.
 
 In detail:  
 
