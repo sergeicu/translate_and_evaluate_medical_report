@@ -54,6 +54,8 @@ def main():
         st.session_state.report_generated = False
     if 'file_viewers' not in st.session_state:
         st.session_state.file_viewers = {}
+    if 'debug' not in st.session_state:
+        st.session_state.debug = False        
 
     if not st.session_state.report_generated:
         # File upload
@@ -75,11 +77,16 @@ def main():
         # Cultural assessment checkbox
         cultural_assessment = st.checkbox("Generate cultural assessment")
 
-        # Model selection (for future use)
-        model = st.selectbox("Select model", ["gpt-4o-mini"])
+        # Developer Mode section
+        with st.expander("Developer Mode"):
+            # Model selection
+            model = st.selectbox("Select model", ["gpt-4o-mini"])
 
-        # API key input
-        api_key = st.text_input("Enter OpenAI API Key (optional)", type="password")
+            # API key input
+            api_key = st.text_input("Enter OpenAI API Key (optional)", type="password")
+
+            # Debug checkbox
+            debug = st.checkbox("Debug")
 
         if st.button("Generate Report"):
             if not api_key and not os.getenv("OPENAI_API_KEY"):
@@ -94,12 +101,13 @@ def main():
                     st.rerun()
 
     else:
-        st.subheader("Backend Output:")
-        st.text(st.session_state.stdout)
-        
-        if st.session_state.stderr:
-            st.error("Backend Errors:")
-            st.text(st.session_state.stderr)
+        if st.session_state.debug:
+            st.subheader("Backend Output:")
+            st.text(st.session_state.stdout)
+            
+            if st.session_state.stderr:
+                st.error("Backend Errors:")
+                st.text(st.session_state.stderr)
         
         # Find the report folder
         report_folder = None
