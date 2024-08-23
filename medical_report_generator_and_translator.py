@@ -13,6 +13,7 @@ Options:
     --model TEXT              Model to use for translation (default: gpt-4o-mini)
     --guidance TEXT           Specifications for synthetic report generation (optional)
     --api_key TEXT            OpenAI API key (required if not in .env file)
+    --microreport             Generate a very short report
 
 Note: Ensure that you have set the OPENAI_API_KEY environment variable before running the script.
 
@@ -94,13 +95,14 @@ model = BertModel.from_pretrained('bert-base-uncased')
 # Define MEDICAL_TERMS (placeholder, should be replaced with actual terms)
 MEDICAL_TERMS = ["anemia", "hypertension", "diabetes", "arrhythmia", "hypothyroidism"]
 
-def generate_medical_report(report_folder: str, guidance: str = None) -> str:
+def generate_medical_report(report_folder: str, guidance: str = None, micro_report: bool = False) -> str:
     """
     Generate a synthetic medical report for a fictional patient.
 
     Args:
         report_folder (str): The folder to save the report and parameters.
         guidance (str, optional): Specific instructions or parameters for report generation.
+        micro_report (bool): If True, generate a very short report.
 
     Returns:
         str: The generated medical report content.
@@ -119,6 +121,9 @@ def generate_medical_report(report_folder: str, guidance: str = None) -> str:
     if guidance:
         prompt += f"\n\nPlease incorporate the following guidance in the report generation: {guidance}"
 
+    if micro_report:
+        prompt = "Generate a random medical report for a fictional patient. Please generate 1 sentence only. No more than 25 words."
+
     try:
         response = completion(
             model="gpt-3.5-turbo",
@@ -132,6 +137,7 @@ def generate_medical_report(report_folder: str, guidance: str = None) -> str:
         params = {
             "prompt": prompt,
             "model": "gpt-3.5-turbo",
+            "micro_report": micro_report
         }
         params_folder = os.path.join(report_folder, "params")
         os.makedirs(params_folder, exist_ok=True)
@@ -610,7 +616,6 @@ def convert_to_native_types(obj):
 
 
 def main():
-    print(f"Analyzing...\n\n\n")
     parser = argparse.ArgumentParser(description="Medical Report Generator and Translator")
     parser.add_argument("--input_file", type=str, help="Path to a .txt file for translation")
     parser.add_argument("--languages", type=str, default="Haitian Creole,Chinese Mandarin,Vietnamese,Russian,Arabic",
@@ -618,7 +623,8 @@ def main():
     parser.add_argument("--model", type=str, default="gpt-4o-mini", help="Model to use for translation")
     parser.add_argument("--guidance", type=str, help="Specifications for synthetic report generation")
     parser.add_argument("--api_key", type=str, help="OpenAI API key")
-    
+    parser.add_argument("--microreport", action="store_true", help="Generate a very short report")
+
     args = parser.parse_args()
 
     # Load .env file
@@ -643,7 +649,7 @@ def main():
             return
     else:
         print("IMPORTANT: The system is generating synthetic report. \nIf you want to generate report from file - please provide file path via --input_file argument")
-        original_report = generate_medical_report(report_folder, args.guidance)
+        original_report = generate_medical_report(report_folder, args.guidance, args.microreport)
 
     if original_report is None:
         print("Failed to generate or read the original report. Exiting.")
