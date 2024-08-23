@@ -9,6 +9,7 @@ Usage:
 
 Options:
     --input_file TEXT         Path to a .txt file for translation (optional)
+    --input_content TEXT      Content of the input file (optional)
     --languages TEXT          Comma-separated list of target languages for translation
     --model TEXT              Model to use for translation (default: gpt-4o-mini)
     --guidance TEXT           Specifications for synthetic report generation (optional)
@@ -618,6 +619,7 @@ def convert_to_native_types(obj):
 def main():
     parser = argparse.ArgumentParser(description="Medical Report Generator and Translator")
     parser.add_argument("--input_file", type=str, help="Path to a .txt file for translation")
+    parser.add_argument("--input_content", type=str, help="Content of the input file")
     parser.add_argument("--languages", type=str, default="Haitian Creole,Chinese Mandarin,Vietnamese,Russian,Arabic",
                         help="Comma-separated list of target languages for translation")
     parser.add_argument("--model", type=str, default="gpt-4o-mini", help="Model to use for translation")
@@ -647,6 +649,8 @@ def main():
         except Exception as e:
             print(f"Error reading input file: {str(e)}")
             return
+    elif args.input_content:
+        original_report = args.input_content
     else:
         print("IMPORTANT: The system is generating synthetic report. \nIf you want to generate report from file - please provide file path via --input_file argument")
         original_report = generate_medical_report(report_folder, args.guidance, args.microreport)

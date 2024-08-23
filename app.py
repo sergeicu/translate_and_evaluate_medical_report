@@ -5,6 +5,7 @@ import json
 from dotenv import load_dotenv
 import tempfile
 import base64
+import io
 
 # Load environment variables
 load_dotenv()
@@ -16,10 +17,9 @@ def run_backend(input_file, languages, cultural_assessment, model, api_key, micr
     ]
     
     if input_file:
-        with tempfile.NamedTemporaryFile(mode='w+', delete=False, suffix='.txt') as temp_file:
-            temp_file.write(input_file.getvalue().decode('utf-8'))
-            temp_file_path = temp_file.name
-        command.extend(["--input_file", temp_file_path])
+        # Read the content of the uploaded file
+        input_content = input_file.getvalue().decode('utf-8')
+        command.extend(["--input_content", input_content])
     
     if not languages:
         languages = ["Spanish"]
@@ -38,9 +38,6 @@ def run_backend(input_file, languages, cultural_assessment, model, api_key, micr
         command.extend(["--microreport"])
     
     result = subprocess.run(command, capture_output=True, text=True)
-    
-    if input_file:
-        os.unlink(temp_file_path)
     
     return result.stdout, result.stderr
 
