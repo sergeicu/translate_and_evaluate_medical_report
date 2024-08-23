@@ -642,7 +642,7 @@ def main():
             print(f"Error reading input file: {str(e)}")
             return
     else:
-        print("Generating synthetic report. \nTo generate from file - please provide file path via --input_file argument")
+        print("IMPORTANT: The system is generating synthetic report. \nIf you want to generate report from file - please provide file path via --input_file argument")
         original_report = generate_medical_report(report_folder, args.guidance)
 
     if original_report is None:
@@ -672,11 +672,13 @@ def main():
         else:
             print(f"Failed to evaluate translation for {language}.")
         
-        cultural_assessment = assess_cultural_appropriateness(translated_report, language, report_folder, args.model)
-        if cultural_assessment:
-            print(f"Cultural appropriateness assessment for {language} saved in {report_folder}")
-        else:
-            print(f"Failed to assess cultural appropriateness for {language}.")
+        # Check if cultural assessment is enabled
+        if os.environ.get("CULTURAL_ASSESSMENT") == "1":
+            cultural_assessment = assess_cultural_appropriateness(translated_report, language, report_folder, args.model)
+            if cultural_assessment:
+                print(f"Cultural appropriateness assessment for {language} saved in {report_folder}")
+            else:
+                print(f"Failed to assess cultural appropriateness for {language}.")
         
         print("\n" + "="*50 + "\n")
 
