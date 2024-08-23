@@ -8,6 +8,7 @@ Generate synthetic medical reports (or ingest existing `.txt` files), translate 
 ### Usage
 ```bash
 python medical_report_generator_and_translator.py [options]
+python medical_report_generator_and_translator.py --languages "Spanish,Portuguese,Haitian Creole,Vietnamese" 
 ```
 
 **Output:**  
