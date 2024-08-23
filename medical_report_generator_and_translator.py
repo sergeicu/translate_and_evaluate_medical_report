@@ -88,7 +88,7 @@ import nltk
 nltk.download('wordnet')
 
 # Initialize BERT model for semantic similarity
-tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+tokenizer = BertTokenizer.from_pretrained('bert-base-uncased',  clean_up_tokenization_spaces=True)  # or False
 model = BertModel.from_pretrained('bert-base-uncased')
 
 # Define MEDICAL_TERMS (placeholder, should be replaced with actual terms)
@@ -126,14 +126,16 @@ def generate_medical_report(report_folder: str, guidance: str = None) -> str:
         )
         report_content = response.choices[0].message.content
         save_report(report_content, os.path.join(report_folder, "original_report.txt"))
-        save_report(report_content, os.path.join(report_folder, "original_report.json"), format="json")
-        save_report(report_content, os.path.join(report_folder, "original_report.csv"), format="csv")
+        # save_report(report_content, os.path.join(report_folder, "original_report.json"), format="json")
+        # save_report(report_content, os.path.join(report_folder, "original_report.csv"), format="csv")
 
         params = {
             "prompt": prompt,
             "model": "gpt-3.5-turbo",
         }
-        save_params(params, os.path.join(report_folder, "generation_params.json"))
+        params_folder = os.path.join(report_folder, "params")
+        os.makedirs(params_folder, exist_ok=True)
+        save_params(params, os.path.join(params_folder, "generation_params.json"))
 
         return report_content
     except Exception as e:
@@ -162,14 +164,16 @@ def translate_report(report: str, target_language: str, report_folder: str, mode
         )
         translated_content = response.choices[0].message.content
         save_report(translated_content, os.path.join(report_folder, f"translated_report_{target_language}.txt"))
-        save_report(translated_content, os.path.join(report_folder, f"translated_report_{target_language}.json"), format="json")
-        save_report(translated_content, os.path.join(report_folder, f"translated_report_{target_language}.csv"), format="csv")
+        # save_report(translated_content, os.path.join(report_folder, f"translated_report_{target_language}.json"), format="json")
+        # save_report(translated_content, os.path.join(report_folder, f"translated_report_{target_language}.csv"), format="csv")
 
         params = {
             "prompt": prompt,
             "model": model,
         }
-        save_params(params, os.path.join(report_folder, f"translation_params_{target_language}.json"))
+        params_folder = os.path.join(report_folder, "params")
+        os.makedirs(params_folder, exist_ok=True)
+        save_params(params, os.path.join(params_folder, f"translation_params_{target_language}.json"))
 
         return translated_content
     except Exception as e:
@@ -224,9 +228,9 @@ def evaluate_translation(original: str, translated: str, target_language: str, r
         }
 
         # Save metrics
-        save_report(metrics, os.path.join(report_folder, f"metrics_{target_language}.txt"), format="txt")
+        # save_report(metrics, os.path.join(report_folder, f"metrics_{target_language}.txt"), format="txt")
         save_report(metrics, os.path.join(report_folder, f"metrics_{target_language}.json"), format="json")
-        save_report(metrics, os.path.join(report_folder, f"metrics_{target_language}.csv"), format="csv")
+        # save_report(metrics, os.path.join(report_folder, f"metrics_{target_language}.csv"), format="csv")
 
         return metrics
     except Exception as e:
@@ -265,8 +269,8 @@ def assess_cultural_appropriateness(translated: str, target_language: str, repor
         )
         assessment = response.choices[0].message.content
         save_report(assessment, os.path.join(report_folder, f"cultural_assessment_{target_language}.txt"))
-        save_report(assessment, os.path.join(report_folder, f"cultural_assessment_{target_language}.json"), format="json")
-        save_report(assessment, os.path.join(report_folder, f"cultural_assessment_{target_language}.csv"), format="csv")
+        # save_report(assessment, os.path.join(report_folder, f"cultural_assessment_{target_language}.json"), format="json")
+        # save_report(assessment, os.path.join(report_folder, f"cultural_assessment_{target_language}.csv"), format="csv")
         return assessment
     except Exception as e:
         print(f"Error assessing cultural appropriateness: {str(e)}")
@@ -293,7 +297,7 @@ def get_report_folder(input_file: str = None) -> str:
         folder_name = f"report_{next_number:03d}_{timestamp}_in_progress"
     
     os.makedirs(folder_name, exist_ok=True)
-    os.makedirs(os.path.join(folder_name, "csv"), exist_ok=True)
+    # os.makedirs(os.path.join(folder_name, "csv"), exist_ok=True)
     os.makedirs(os.path.join(folder_name, "json"), exist_ok=True)
     os.makedirs(os.path.join(folder_name, "txt"), exist_ok=True)
     return folder_name
@@ -513,7 +517,7 @@ def save_translations_csv(report_folder: str, original_report: str, translations
         original_report (str): The original report content.
         translations (Dict[str, str]): A dictionary of translations with language codes as keys.
     """
-    for format in ['csv', 'json', 'txt']:
+    for format in ['json']: #['csv', 'json', 'txt']:
         filename = os.path.join(report_folder, f"all_translations.{format}")
         content = {
             'English (Original)': original_report,
@@ -529,7 +533,7 @@ def save_metrics_csv(report_folder: str, metrics: Dict[str, Dict[str, Any]]) -> 
         report_folder (str): The folder where the report files are saved.
         metrics (Dict[str, Dict[str, Any]]): A dictionary of metrics for each translation.
     """
-    for format in ['csv', 'json', 'txt']:
+    for format in ['json']: # ['csv', 'json', 'txt']:
         filename = os.path.join(report_folder, f"all_metrics.{format}")
         save_report(metrics, filename, format)
 
@@ -606,6 +610,7 @@ def convert_to_native_types(obj):
 
 
 def main():
+    print(f"Analyzing...\n\n\n")
     parser = argparse.ArgumentParser(description="Medical Report Generator and Translator")
     parser.add_argument("--input_file", type=str, help="Path to a .txt file for translation")
     parser.add_argument("--languages", type=str, default="Haitian Creole,Chinese Mandarin,Vietnamese,Russian,Arabic",
@@ -637,6 +642,7 @@ def main():
             print(f"Error reading input file: {str(e)}")
             return
     else:
+        print("Generating synthetic report. \nTo generate from file - please provide file path via --input_file argument")
         original_report = generate_medical_report(report_folder, args.guidance)
 
     if original_report is None:
@@ -680,8 +686,8 @@ def main():
     # Save translations and metrics to separate files
     save_translations_csv(report_folder, original_report, translations)
     save_metrics_csv(report_folder, all_metrics)
-    print(f"All translations saved in {report_folder}")
-    print(f"All metrics saved in {report_folder}")
+    # print(f"All translations saved in {report_folder}")
+    # print(f"All metrics saved in {report_folder}")
 
 
     # Evaluate the overall translation quality
@@ -696,12 +702,12 @@ def main():
 
     print(f"Overall translation evaluation saved in {evaluation_file}")        
 
-    # Check JSON completeness
-    json_file = os.path.join(report_folder, "json", "original_report.json")
-    if check_json_completeness(json_file):
-        print(f"JSON file {json_file} is complete and valid.")
-    else:
-        print(f"JSON file {json_file} is incomplete or invalid.")
+    # # Check JSON completeness
+    # json_file = os.path.join(report_folder, "json", "original_report.json")
+    # if check_json_completeness(json_file):
+    #     print(f"JSON file {json_file} is complete and valid.")
+    # else:
+    #     print(f"JSON file {json_file} is incomplete or invalid.")
             
 
 
