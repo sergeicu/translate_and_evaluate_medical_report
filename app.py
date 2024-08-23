@@ -1,45 +1,12 @@
 import streamlit as st
 import os
-import subprocess
 import json
 from dotenv import load_dotenv
-import tempfile
 import base64
-import io
+from medical_report_generator_and_translator import run_report_generation
 
 # Load environment variables
 load_dotenv()
-
-def run_backend(input_file, languages, cultural_assessment, model, api_key, micro_report):
-    command = [
-        "python", "medical_report_generator_and_translator.py",
-        "--model", model,
-    ]
-    
-    if input_file:
-        # Read the content of the uploaded file
-        input_content = input_file.getvalue().decode('utf-8')
-        command.extend(["--input_content", input_content])
-    
-    if not languages:
-        languages = ["Spanish"]
-        st.warning("No language selected - using Spanish as default")
-    
-    command.extend(["--languages", ",".join(languages)])
-    
-    if api_key:
-        command.extend(["--api_key", api_key])
-    
-    # Set environment variable for cultural assessment
-    os.environ["CULTURAL_ASSESSMENT"] = "1" if cultural_assessment else "0"
-    
-    # Add micro report option
-    if micro_report:
-        command.extend(["--microreport"])
-    
-    result = subprocess.run(command, capture_output=True, text=True)
-    
-    return result.stdout, result.stderr
 
 def get_binary_file_downloader_html(bin_file, file_label='File'):
     with open(bin_file, 'rb') as f:
@@ -99,41 +66,41 @@ def main():
                 st.error("Please provide an API key or set it in the .env file")
             else:
                 with st.spinner("Generating report..."):
-                    stdout, stderr = run_backend(uploaded_file, selected_languages, cultural_assessment, model, api_key, micro_report)
-                    
-                    st.session_state.stdout = stdout
-                    st.session_state.stderr = stderr
-                    st.session_state.debug = debug
-                    st.session_state.report_generated = True
-                    st.session_state.input_data = {
-                        "uploaded_file": uploaded_file,
-                        "selected_languages": selected_languages,
-                        "cultural_assessment": cultural_assessment,
-                        "model": model,
-                        "api_key": api_key,
-                        "debug": debug,
-                        "micro_report": micro_report
-                    }
-                    st.rerun()
+                    try:
+                        input_content = uploaded_file.getvalue().decode('utf-8') if uploaded_file else None
+                        os.environ["CULTURAL_ASSESSMENT"] = "1" if cultural_assessment else "0"
+                        
+                        report_folder = run_report_generation(
+                            input_content=input_content,
+                            languages=",".join(selected_languages),
+                            model=model,
+                            api_key=api_key,
+                            microreport=micro_report
+                        )
+                        
+                        st.session_state.report_generated = True
+                        st.session_state.report_folder = report_folder
+                        st.session_state.input_data = {
+                            "uploaded_file": uploaded_file,
+                            "selected_languages": selected_languages,
+                            "cultural_assessment": cultural_assessment,
+                            "model": model,
+                            "api_key": api_key,
+                            "debug": debug,
+                            "micro_report": micro_report
+                        }
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"An error occurred: {str(e)}")
 
     if st.session_state.report_generated:
         st.markdown("---")
-        # st.subheader("Generated Report")
 
         if st.session_state.debug:
-            st.subheader("Backend Output:")
-            st.text(st.session_state.stdout)
-            
-            if st.session_state.stderr:
-                st.error("Backend Errors:")
-                st.text(st.session_state.stderr)
+            st.subheader("Debug Information:")
+            st.json(st.session_state.input_data)
         
-        # Find the report folder
-        report_folder = None
-        for line in st.session_state.stdout.split("\n"):
-            if line.startswith("Report generation completed. Final report folder:"):
-                report_folder = line.split(":")[1].strip()
-                break
+        report_folder = st.session_state.report_folder
         
         if report_folder:
             st.subheader("Generated Files:")

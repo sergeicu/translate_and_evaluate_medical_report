@@ -616,7 +616,91 @@ def convert_to_native_types(obj):
     return obj
 
 
-def main():
+def run_report_generation(input_file=None, input_content=None, languages="Haitian Creole,Chinese Mandarin,Vietnamese,Russian,Arabic", model="gpt-4o-mini", guidance=None, api_key=None, microreport=False):
+    # Set OpenAI API key
+    api_key = api_key or os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        raise ValueError("Error: OpenAI API key must be provided either in .env file or via api_key argument.")
+
+    os.environ["OPENAI_API_KEY"] = api_key
+
+    report_folder = get_report_folder(input_file)
+
+    if input_file:
+        try:
+            with open(input_file, 'r', encoding='utf-8') as f:
+                original_report = f.read()
+        except Exception as e:
+            raise IOError(f"Error reading input file: {str(e)}")
+    elif input_content:
+        original_report = input_content
+    else:
+        print("IMPORTANT: The system is generating synthetic report.")
+        original_report = generate_medical_report(report_folder, guidance, microreport)
+
+    if original_report is None:
+        raise ValueError("Failed to generate or read the original report.")
+
+    print(f"Original Report (English) saved in {report_folder}")
+    print("\n" + "="*50 + "\n")
+
+    languages = languages.split(',')
+    translations = {}
+    all_metrics = {}
+
+    for language in languages:
+        translated_report = translate_report(original_report, language, report_folder, model)
+        if translated_report is None:
+            print(f"Failed to translate report to {language}. Skipping evaluation for this language.")
+            continue
+        
+        translations[language] = translated_report
+        print(f"Translated Report ({language}) saved in {report_folder}")
+        
+        metrics = evaluate_translation(original_report, translated_report, language, report_folder, model)
+        if metrics:
+            all_metrics[language] = metrics
+            print(f"Translation metrics for {language} saved in {report_folder}")
+        else:
+            print(f"Failed to evaluate translation for {language}.")
+        
+        # Check if cultural assessment is enabled
+        if os.environ.get("CULTURAL_ASSESSMENT") == "1":
+            cultural_assessment = assess_cultural_appropriateness(translated_report, language, report_folder, model)
+            if cultural_assessment:
+                print(f"Cultural appropriateness assessment for {language} saved in {report_folder}")
+            else:
+                print(f"Failed to assess cultural appropriateness for {language}.")
+        
+        print("\n" + "="*50 + "\n")
+
+    # Add metrics for the original report (English)
+    all_metrics['English'] = {'Readability (Original)': calculate_readability(original_report)}
+
+    # Save translations and metrics to separate files
+    save_translations_csv(report_folder, original_report, translations)
+    save_metrics_csv(report_folder, all_metrics)
+
+    # Evaluate the overall translation quality
+    overall_evaluation = evaluate_translation_quality(all_metrics, model)
+
+    # Save the evaluation to a .txt file
+    evaluation_file = os.path.join(report_folder, "overall_evaluation.txt")
+    with open(evaluation_file, 'w', encoding='utf-8') as f:
+        for language, evaluation in overall_evaluation.items():
+            f.write(f"Language: {language}\n")
+            f.write(f"Evaluation: {evaluation}\n\n")
+
+    print(f"Overall translation evaluation saved in {evaluation_file}")        
+
+    # Remove "_in_progress" suffix from the folder name
+    new_folder_name = report_folder.replace("_in_progress", "")
+    os.rename(report_folder, new_folder_name)
+    print(f"Report generation completed. Final report folder: {new_folder_name}")
+    
+    return new_folder_name
+
+if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Medical Report Generator and Translator")
     parser.add_argument("--input_file", type=str, help="Path to a .txt file for translation")
     parser.add_argument("--input_content", type=str, help="Content of the input file")
@@ -632,103 +716,4 @@ def main():
     # Load .env file
     load_dotenv()
 
-    # Set OpenAI API key
-    api_key = args.api_key or os.getenv("OPENAI_API_KEY")
-    if not api_key:
-        print("Error: OpenAI API key must be provided either in .env file or via --api_key argument.")
-        return
-
-    os.environ["OPENAI_API_KEY"] = api_key
-
-    report_folder = get_report_folder(args.input_file)
-
-    if args.input_file:
-        try:
-            with open(args.input_file, 'r', encoding='utf-8') as f:
-                original_report = f.read()
-        except Exception as e:
-            print(f"Error reading input file: {str(e)}")
-            return
-    elif args.input_content:
-        original_report = args.input_content
-    else:
-        print("IMPORTANT: The system is generating synthetic report. \nIf you want to generate report from file - please provide file path via --input_file argument")
-        original_report = generate_medical_report(report_folder, args.guidance, args.microreport)
-
-    if original_report is None:
-        print("Failed to generate or read the original report. Exiting.")
-        return
-
-    print(f"Original Report (English) saved in {report_folder}")
-    print("\n" + "="*50 + "\n")
-
-    languages = args.languages.split(',')
-    translations = {}
-    all_metrics = {}
-
-    for language in languages:
-        translated_report = translate_report(original_report, language, report_folder, args.model)
-        if translated_report is None:
-            print(f"Failed to translate report to {language}. Skipping evaluation for this language.")
-            continue
-        
-        translations[language] = translated_report
-        print(f"Translated Report ({language}) saved in {report_folder}")
-        
-        metrics = evaluate_translation(original_report, translated_report, language, report_folder, args.model)
-        if metrics:
-            all_metrics[language] = metrics
-            print(f"Translation metrics for {language} saved in {report_folder}")
-        else:
-            print(f"Failed to evaluate translation for {language}.")
-        
-        # Check if cultural assessment is enabled
-        if os.environ.get("CULTURAL_ASSESSMENT") == "1":
-            cultural_assessment = assess_cultural_appropriateness(translated_report, language, report_folder, args.model)
-            if cultural_assessment:
-                print(f"Cultural appropriateness assessment for {language} saved in {report_folder}")
-            else:
-                print(f"Failed to assess cultural appropriateness for {language}.")
-        
-        print("\n" + "="*50 + "\n")
-
-    # Add metrics for the original report (English)
-    all_metrics['English'] = {'Readability (Original)': calculate_readability(original_report)}
-
-    # Save translations and metrics to separate files
-    save_translations_csv(report_folder, original_report, translations)
-    save_metrics_csv(report_folder, all_metrics)
-    # print(f"All translations saved in {report_folder}")
-    # print(f"All metrics saved in {report_folder}")
-
-
-    # Evaluate the overall translation quality
-    overall_evaluation = evaluate_translation_quality(all_metrics, args.model)
-
-    # Save the evaluation to a .txt file
-    evaluation_file = os.path.join(report_folder, "overall_evaluation.txt")
-    with open(evaluation_file, 'w', encoding='utf-8') as f:
-        for language, evaluation in overall_evaluation.items():
-            f.write(f"Language: {language}\n")
-            f.write(f"Evaluation: {evaluation}\n\n")
-
-    print(f"Overall translation evaluation saved in {evaluation_file}")        
-
-    # # Check JSON completeness
-    # json_file = os.path.join(report_folder, "json", "original_report.json")
-    # if check_json_completeness(json_file):
-    #     print(f"JSON file {json_file} is complete and valid.")
-    # else:
-    #     print(f"JSON file {json_file} is incomplete or invalid.")
-            
-
-
-    # Remove "_in_progress" suffix from the folder name
-    new_folder_name = report_folder.replace("_in_progress", "")
-    os.rename(report_folder, new_folder_name)
-    print(f"Report generation completed. Final report folder: {new_folder_name}")
-    
-        
-
-if __name__ == "__main__":
-    main()
+    run_report_generation(args.input_file, args.input_content, args.languages, args.model, args.guidance, args.api_key, args.microreport)

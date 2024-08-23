@@ -5,10 +5,16 @@
 
 Generate synthetic medical reports (or ingest existing `.txt` files), translate them into multiple languages using any LLM, and then evaluate the quality of the translations using various metrics.
 
-### Usage
+### Usage [browser]
 ```bash
-python medical_report_generator_and_translator.py [options]
-python medical_report_generator_and_translator.py --languages "Spanish,Portuguese" 
+pip install -r requirements.txt
+streamlit run app.py
+```
+
+
+### Usage [terminal]
+```bash
+python medical_report_generator_and_translator.py --languages "Spanish,Portuguese" [other options]
 ```
 
 **Output:**  
@@ -22,6 +28,7 @@ Creates a new folder with translations for each specified language in `.csv`, `.
 - `--api_key TEXT` &nbsp;&nbsp;&nbsp;&nbsp; OpenAI API key (required if not present in `.env` file)
 
 > **Note:** Ensure that you have `OPENAI_API_KEY` in the `.env` file before running the script, or provide it via the `--api_key` argument.
+
 
 ### Translation Evaluation Metrics
 
