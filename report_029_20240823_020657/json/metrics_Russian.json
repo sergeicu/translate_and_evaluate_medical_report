@@ -1,0 +1,43 @@
+{
+  "BLEU Score": 0.6710594803123995,
+  "METEOR Score": 0.860516495132128,
+  "RIBES Score": 0.3231819821299119,
+  "BERTScore": 0.9969754815101624,
+  "Readability (Original)": {
+    "flesch": 32.53,
+    "smog": 15.6
+  },
+  "Readability (Translated)": {
+    "flesch": 104.37,
+    "smog": 3.1
+  },
+  "Terminology Accuracy": 1.0,
+  "Consistency": {
+    "anemia": 0,
+    "hypertension": 0,
+    "diabetes": 0,
+    "arrhythmia": 0,
+    "hypothyroidism": 0
+  },
+  "Errors": {
+    "terminology": [],
+    "grammar": [
+      "Comma mismatch in:  She experiences abdominal pain, primarily in the lower left quadrant, which worsens after eating",
+      "Comma mismatch in:  She also reports bowel habits with loose stools several times a day"
+    ],
+    "style": [],
+    "omission": [
+      "Possible omission in: Medical Report\n\nPatient Information:  \nName: Sarah Johnson  \nAge: 32  \nSex: Female  \nOccupation: Programmer  \nAddress: 123 Maple Street, Anytown, USA  \nDate of Report: October 15, 2021  \n\nChief Complaint:  \nThe patient presents with a two-week history of persistent abdominal pain, bloating, and frequent episodes of diarrhea",
+      "Possible omission in:  She experiences abdominal pain, primarily in the lower left quadrant, which worsens after eating",
+      "Possible omission in:  She also reports bowel habits with loose stools several times a day",
+      "Possible omission in:  She denies recent travel, recent illnesses, or changes in diet",
+      "Possible omission in:   \n\nMedical History:  \n- Hypothyroidism, diagnosed 5 years ago and controlled with levothyroxine  \n- Seasonal allergies, managed with antihistamines  \n- No history of surgical procedures  \n- No known drug allergies  \n\nPhysical Examination:  \n- Vital signs: Blood pressure 120/80 mmHg, pulse 78 bpm, respiratory rate 16 breaths per minute, temperature 37",
+      "Possible omission in:  Initiate a low FODMAP diet and recommend stress management techniques  \n4",
+      "Possible omission in:  Follow-up appointment in 2 weeks to monitor symptoms and adjust treatment plan as necessary"
+    ],
+    "addition": [
+      "Possible addition in: 0°C  \n- General condition: The patient appears well-nourished and not in acute distress  \n- Abdominal examination: Soft, slightly distended abdomen with tenderness in the left lower quadrant, without guarding or rebound tenderness  \n\nAssessment:  \nBased on the history of present illness, physical examination findings, and laboratory tests, the most likely diagnosis is Irritable Bowel Syndrome (IBS)",
+      "Possible addition in:  Order stool tests to identify infectious causes of diarrhea  \n2"
+    ]
+  }
+}
